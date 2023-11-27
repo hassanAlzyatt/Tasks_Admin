@@ -106,12 +106,137 @@ const addProduct= async (req, res) => {
       res.status(500).send('Error updating record');
     }
   };
+   //////////////////////////////////////////////////// get api ///////////////////////
+   // Stock 
+   // get all menue items that its Rating > = 
+   const getStocksWithRatingFilter =async (req, res) => {
+    try {
+      const ratingThreshold = req.params.rating;
+      const query = 'SELECT * FROM menuitems WHERE rating >= ?';
+  
+      const menuItems = await new Promise((resolve, reject) => {
+        db.query(query, [ratingThreshold], (err, results) => {
+          if (err) {
+            console.error('Error retrieving menu items: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  
+      res.status(200).json(menuItems);
+    } catch (err) {
+      console.error('Error retrieving menu items: ' + err);
+      res.status(500).send('Error retrieving menu items');
+    }
+  };
+ // get all menue items that its  price > =
+  const getStocksWithPriceFilter =async (req, res) => {
+    try {
+      const priceThreshold = req.params.price;
+      const query = 'SELECT * FROM menuitems WHERE price >= ?';
+  
+      const menuItems = await new Promise((resolve, reject) => {
+        db.query(query, [priceThreshold], (err, results) => {
+          if (err) {
+            console.error('Error retrieving menu items: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  
+      res.status(200).json(menuItems);
+    } catch (err) {
+      console.error('Error retrieving menu items: ' + err);
+      res.status(500).send('Error retrieving menu items');
+    }
+  };
+  //  get all menue items that its timesOrdered > = 
+  const getStocksWithTimesOrderedFilter =async (req, res) => {
+    try {
+      const TimesThreshold = req.params.times;
+      const query = 'SELECT * FROM menuitems WHERE timesOrdered >= ?';
+  
+      const menuItems = await new Promise((resolve, reject) => {
+        db.query(query, [TimesThreshold], (err, results) => {
+          if (err) {
+            console.error('Error retrieving menu items: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+  
+      res.status(200).json(menuItems);
+    } catch (err) {
+      console.error('Error retrieving menu items: ' + err);
+      res.status(500).send('Error retrieving menu items');
+    }
+  };
+   
+// Booking filters
+// get all bookings in a specifice table
+const getBookingWithTableNumberFilter =async (req, res) => {
+  try {
+    const TableNumber = req.params.TableNumber;
+    const query = 'SELECT * FROM bookings WHERE tableNumber = ?';
 
+    const Table = await new Promise((resolve, reject) => {
+      db.query(query, [TableNumber], (err, results) => {
+        if (err) {
+          console.error('Error retrieving bookings: ' + err);
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
 
+    res.status(200).json(Table);
+  } catch (err) {
+    console.error('Error retrieving bookings: ' + err);
+    res.status(500).send('Error retrieving bookings');
+  }
+};
+ 
+  // get all bookings that has a specific num of people 
+const getBookingWithNumberOfPeopleFilter =async (req, res) => {
+  try {
+    const NumberOfPeople = req.params.NumberOfPeople;
+    const query = 'SELECT * FROM bookings WHERE numberOfPeople =?';
+
+    const Table = await new Promise((resolve, reject) => {
+      db.query(query, [NumberOfPeople], (err, results) => {
+        if (err) {
+          console.error('Error retrieving bookings: ' + err);
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    res.status(200).json(Table);
+  } catch (err) {
+    console.error('Error retrieving bookings: ' + err);
+    res.status(500).send('Error retrieving bookings');
+  }
+};
+ 
   
   module.exports ={
     addProduct,
     deleteRecord,
     updateRecord,
+    getStocksWithRatingFilter,
+    getStocksWithPriceFilter,
+    getStocksWithTimesOrderedFilter,
+    getBookingWithTableNumberFilter,
+    getBookingWithNumberOfPeopleFilter,
+    
    
 }
