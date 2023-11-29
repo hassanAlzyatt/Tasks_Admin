@@ -16,5 +16,11 @@ router.get('/menuitems/TimesOrderedFilter/:times',serves.getStocksWithTimesOrder
 //Bookings Routes
 router.get('/booings/TableNumberFilter/:TableNumber',serves.getBookingWithTableNumberFilter);
 router.get('/booings/NumberOfPeopleFilter/:NumberOfPeople',serves.getBookingWithNumberOfPeopleFilter);
+//user routes
+router.post('/menuitems/menueitem/rate',serves.calculateRating);
+router.post('/user/addFavorite',serves.addItemAsFavorite);
+router.delete('/user/DeleteFavorite',serves.deleteItemFromFavourite);
+router.get('/user/getAllFavorites/:customerId',serves.getAllFavorites);
+
 
 module.exports = router;
