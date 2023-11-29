@@ -226,8 +226,206 @@ const getBookingWithNumberOfPeopleFilter =async (req, res) => {
     res.status(500).send('Error retrieving bookings');
   }
 };
- 
+    
+// Rating method
+const calculateRating= async (req, res) => {
   
+ 
+  try {
+    const { customerId, itemId, rating } = req.body;
+   
+
+    
+    const query = 'SELECT * FROM calculaterate WHERE customerId = ? AND itemId = ? ';
+  
+    const combunationQuery = await new Promise((resolve, reject) => {
+      db.query(query, [customerId, itemId], (err, results) => {
+        if (err) {
+          console.error('Error retrieving data: ' + err);
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+     if(combunationQuery.length >0){
+      // combination exist so update
+      const query = 'UPDATE calculaterate SET rating = ? WHERE customerId = ? AND itemId = ? ';
+  
+      const createQuery = await new Promise((resolve, reject) => {
+        db.query(query, [rating,customerId, itemId], (err, results) => {
+          if (err) {
+            console.error('Error updatting data: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+      
+     }  
+     else{
+      const query = 'insert into  resto.calculaterate (customerId,itemId,rating) values(?,?,?)';
+  
+      const updateQuery = await new Promise((resolve, reject) => {
+        db.query(query, [customerId, itemId,rating], (err, results) => {
+          if (err) {
+            console.error('Error retrieving data: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+     }
+
+     // calculating avg (rating) for the item id 
+     let newRate;
+     const avgquery =' SELECT   AVG(rating)  FROM calculaterate WHERE itemId = ? ';
+  
+      const avgqueryCalc = await new Promise((resolve, reject) => {
+        db.query(avgquery, [itemId], (err, results) => {
+          if (err) {
+            console.error('Error calc avg : ' + err);
+            reject(err);
+          } else {
+             // convert query to value only
+           const x =Object.values(results[0]);
+           newRate=parseFloat(x[0]);
+           
+           console.log(newRate);
+
+            resolve(results);
+          }
+        });
+      });
+      res.send(avgqueryCalc);
+      
+     
+      
+      
+
+      //update rating in menueitems table
+      const menuItemQuery ='UPDATE menuitems SET rating = ? WHERE itemId = ?';
+  
+      const updateQuery = await new Promise((resolve, reject) => {
+        db.query(menuItemQuery, [newRate,itemId], (err, results) => {
+          if (err) {
+            console.error('Error updating data: ' + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+     
+   
+  } catch (err) {
+    console.error('Error updating data: ' + err);
+    res.status(500).send('Error updating data');
+  }
+}
+// Favourite for users
+    //                 Adding item as favorite
+    const addItemAsFavorite= async (req, res) => {
+      try {
+        const { itemId,customerId } = req.body;
+        await new Promise((resolve, reject) => {
+          const query = 'INSERT INTO favorites (itemId,customerId) VALUES (?, ?)';
+          db.query(query, [itemId, customerId], (err, result) => {
+            if (err) {
+              console.error('Error adding favorite: ', err);
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+        res.status(200).json({ message: 'Product added as favorite' });
+      } catch (err) {
+        console.error('Failed to add product  as favorite: ', err);
+        res.status(500).json({ error: 'Failed to add product  as favorite' });
+      }
+    }
+
+ //deleting item from favorites
+    const deleteItemFromFavourite =async (req, res) => {
+      try {
+        const { customerId, itemId } = req.body;
+        const checkQuery = 'SELECT COUNT(*) AS count FROM favorites WHERE itemId = ? AND customerId =?';
+        const deleteQuery = 'DELETE FROM favorites WHERE itemId = ? AND customerId=?';
+    
+        const checkResult = await new Promise((resolve, reject) => {
+          db.query(checkQuery, [itemId,customerId], (err, result) => {
+            if (err) {
+              console.error('Error checking record existence: ', err);
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+    
+        const count = checkResult[0].count;
+    
+        if (count > 0) {
+          await new Promise((resolve, reject) => {
+            db.query(deleteQuery, [itemId,customerId], (err, result) => {
+              if (err) {
+                console.error('Error deleting favorite: ', err);
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+          });
+          res.status(200).json({ message: 'favorite Record deleted successfully' });
+        } else {
+          res.status(404).json({ error: 'Record not found' });
+        }
+
+      
+ 
+   
+      } catch (err) {
+        console.error('Failed to delete favorite record: ', err);
+        res.status(500).json({ error: 'Failed to delete favorite record' });
+      }
+    };
+
+    // get all favorite for a customer
+    
+const getAllFavorites =async (req, res) => {
+  try {
+    const customerId = req.params.customerId;
+    const query = 'SELECT m.* FROM menuitems m JOIN favorites f ON m.itemId = f.itemId WHERE f.customerId = ?';
+    //array to save favorites id
+    
+
+    const Favourite = await new Promise((resolve, reject) => {
+      db.query(query, [customerId], (err, results) => {
+        if (err) {
+          console.error('Error retrieving favorites: ' + err);
+          reject(err);
+        } else {
+        
+          resolve(results);
+         
+          
+        }
+      });
+    });
+
+    res.status(200).json(Favourite);
+    
+  } catch (err) {
+    console.error('Error return favorites : ' + err);
+    res.status(500).send('Error  return favorites ');
+  }
+};
+ // get all data for every item in itemIds in favorite
+
+   
   module.exports ={
     addProduct,
     deleteRecord,
@@ -237,6 +435,10 @@ const getBookingWithNumberOfPeopleFilter =async (req, res) => {
     getStocksWithTimesOrderedFilter,
     getBookingWithTableNumberFilter,
     getBookingWithNumberOfPeopleFilter,
+    calculateRating,
+    addItemAsFavorite,
+    deleteItemFromFavourite,
+    getAllFavorites,
     
    
 }
