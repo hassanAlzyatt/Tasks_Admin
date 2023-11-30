@@ -109,13 +109,15 @@ const addProduct= async (req, res) => {
    //////////////////////////////////////////////////// get api ///////////////////////
    // Stock 
    // get all menue items that its Rating > = 
-   const getStocksWithRatingFilter =async (req, res) => {
+   const getStocksWithFilter =async (req, res) => {
     try {
-      const ratingThreshold = req.params.rating;
-      const query = 'SELECT * FROM menuitems WHERE rating >= ?';
+      const {ratingThreshold,maxPrice,minPrice,TimesThreshold} = req.body;
+      const query = 'SELECT * FROM menuitems WHERE rating >= ? AND timesOrdered >= ? AND price BETWEEN ? AND ? ';
+      const maxprice ='SELECT MAX(price) FROM menuitems';
+      const maxOrdered ='SELECT MAX(timesOrdered) FROM menuitems';
   
       const menuItems = await new Promise((resolve, reject) => {
-        db.query(query, [ratingThreshold], (err, results) => {
+        db.query(query, [ratingThreshold, TimesThreshold,minPrice,maxPrice ], (err, results) => {
           if (err) {
             console.error('Error retrieving menu items: ' + err);
             reject(err);
@@ -124,52 +126,40 @@ const addProduct= async (req, res) => {
           }
         });
       });
-  
-      res.status(200).json(menuItems);
-    } catch (err) {
-      console.error('Error retrieving menu items: ' + err);
-      res.status(500).send('Error retrieving menu items');
-    }
-  };
- // get all menue items that its  price > =
-  const getStocksWithPriceFilter =async (req, res) => {
-    try {
-      const priceThreshold = req.params.price;
-      const query = 'SELECT * FROM menuitems WHERE price >= ?';
-  
-      const menuItems = await new Promise((resolve, reject) => {
-        db.query(query, [priceThreshold], (err, results) => {
+      let maxPriceAsFloat;
+      const maxPriceOrder = await new Promise((resolve, reject) => {
+        db.query(maxprice, [], (err, results) => {
           if (err) {
             console.error('Error retrieving menu items: ' + err);
             reject(err);
           } else {
+            const x =Object.values(results[0]);
+            maxPriceAsFloat=parseFloat(x[0]);
+           
             resolve(results);
           }
         });
       });
-  
-      res.status(200).json(menuItems);
-    } catch (err) {
-      console.error('Error retrieving menu items: ' + err);
-      res.status(500).send('Error retrieving menu items');
-    }
-  };
-  //  get all menue items that its timesOrdered > = 
-  const getStocksWithTimesOrderedFilter =async (req, res) => {
-    try {
-      const TimesThreshold = req.params.times;
-      const query = 'SELECT * FROM menuitems WHERE timesOrdered >= ?';
-  
-      const menuItems = await new Promise((resolve, reject) => {
-        db.query(query, [TimesThreshold], (err, results) => {
+      res.appendHeader("maxPrice",maxPriceAsFloat);
+
+      let maxTimesOrderedASINT;
+      const maxTimesOrdered = await new Promise((resolve, reject) => {
+        db.query(maxOrdered, [], (err, results) => {
           if (err) {
             console.error('Error retrieving menu items: ' + err);
             reject(err);
           } else {
+            const x =Object.values(results[0]);
+            maxTimesOrderedASINT=parseFloat(x[0]);
+           
             resolve(results);
           }
         });
       });
+      
+      res.appendHeader("maxTimesOrdered",maxTimesOrderedASINT);
+      
+      console.log(maxTimesOrdered);
   
       res.status(200).json(menuItems);
     } catch (err) {
@@ -177,7 +167,7 @@ const addProduct= async (req, res) => {
       res.status(500).send('Error retrieving menu items');
     }
   };
-   
+
 // Booking filters
 // get all bookings in a specifice table
 const getBookingWithTableNumberFilter =async (req, res) => {
@@ -430,9 +420,7 @@ const getAllFavorites =async (req, res) => {
     addProduct,
     deleteRecord,
     updateRecord,
-    getStocksWithRatingFilter,
-    getStocksWithPriceFilter,
-    getStocksWithTimesOrderedFilter,
+    getStocksWithFilter,
     getBookingWithTableNumberFilter,
     getBookingWithNumberOfPeopleFilter,
     calculateRating,
