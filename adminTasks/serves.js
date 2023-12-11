@@ -112,7 +112,7 @@ const addProduct= async (req, res) => {
    const getStocksWithFilter =async (req, res) => {
     try {
       const {ratingThreshold,maxPrice,minPrice,TimesThreshold} = req.body;
-      const query = 'SELECT * FROM menuitems WHERE rating >= ? AND timesOrdered >= ? AND price BETWEEN ? AND ? ';
+      const query = 'SELECT m.*,c.categoryName FROM menuitems m JOIN categories c ON m.categoriesID = c.categoryId WHERE m.rating >= ? AND m.timesOrdered >= ? AND m.price BETWEEN ? AND ? ';
       const maxprice ='SELECT MAX(price) FROM menuitems';
       const maxOrdered ='SELECT MAX(timesOrdered) FROM menuitems';
   
