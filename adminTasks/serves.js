@@ -2,10 +2,10 @@ const db = require('./db');
 
 const addProduct= async (req, res) => {
     try {
-      const { itemId, name, inStock, description, rating, price, timesOrdered, image } = req.body;
+      const { itemId, name, inStock, description, rating, price, timesOrdered, image ,categoriesID} = req.body;
       await new Promise((resolve, reject) => {
-        const query = 'INSERT INTO menuitems (itemId, name, inStock, description, rating, price, timesOrdered, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        db.query(query, [itemId, name, inStock, description, rating, price, timesOrdered, image], (err, result) => {
+        const query = 'INSERT INTO menuitems (itemId, name, inStock, description, rating, price, timesOrdered, image,categoriesID) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?)';
+        db.query(query, [itemId, name, inStock, description, rating, price, timesOrdered, image,categoriesID], (err, result) => {
           if (err) {
             console.error('Error adding product: ', err);
             reject(err);
@@ -65,11 +65,11 @@ const addProduct= async (req, res) => {
   const updateRecord= async (req, res) => {
     try {
       const itemId = req.params.itemId;
-      const { name, inStock, description, rating, price, timesOrdered, image } = req.body;
+      const { name, inStock, description, rating, price, timesOrdered, image ,categoriesID } = req.body;
       const checkItemQuery = 'SELECT * FROM menuitems WHERE itemId = ?';
       const updateQuery = `
         UPDATE menuitems
-        SET name = ?, inStock = ?, description = ?, rating = ?, price = ?, timesOrdered = ?, image = ?
+        SET name = ?, inStock = ?, description = ?, rating = ?, price = ?, timesOrdered = ?, image = ?,categoriesID=?
         WHERE itemId = ?
       `;
   
@@ -90,7 +90,7 @@ const addProduct= async (req, res) => {
       }
   
       await new Promise((resolve, reject) => {
-        db.query(updateQuery, [name, inStock, description, rating, price, timesOrdered, image, itemId], (err, updateResult) => {
+        db.query(updateQuery, [name, inStock, description, rating, price, timesOrdered, image, itemId,categoriesID], (err, updateResult) => {
           if (err) {
             console.error('Error updating record: ' + err);
             reject(err);
